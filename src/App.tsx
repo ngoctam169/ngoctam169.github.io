@@ -1,951 +1,1525 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Award,
-  CheckCircle2,
+  ArrowLeft,
+  ArrowRight,
+  BookOpenText,
+  BriefcaseBusiness,
+  CalendarDays,
+  Check,
+  Clock3,
+  Copy,
   Download,
   ExternalLink,
-  FileText,
-  Github,
-  Globe,
-  Linkedin,
+  GraduationCap,
   Mail,
   MapPin,
+  Menu,
+  Moon,
   Phone,
-  Send,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  Terminal,
-  Briefcase,
-  GraduationCap,
-  MessageSquarePlus
+  Sun,
+  X,
 } from 'lucide-react';
+// @ts-ignore
+import { AUTHOR } from './data/author';
+// @ts-ignore
+import { latestBlogPosts } from './data/blogMeta';
+// @ts-ignore
+import { blogPosts, findBlogPost } from './data/blogPosts';
+import { Mascot, MASCOT_STYLES, mascotSheets } from './components/Mascot';
 import {
-  CANDIDATE_PROFILE,
-  CAREER_TIMELINE,
-  EXECUTIVE_KPIS,
-  Lang,
-  SKILL_DOMAINS
-} from './data/portfolioData';
-import {
+  AiAuditReport,
   EndorsementItem,
+  executeAiAudit,
   fetchOverview,
   PortfolioMetrics,
   submitContactFastTrack,
-  submitEndorsement
+  submitEndorsement,
 } from './services/api';
-import { InteractiveArchitectureLab } from './components/InteractiveArchitectureLab';
-import { HrDecisionAndAiAuditHub } from './components/HrDecisionAndAiAuditHub';
-import { AiOverviewSeoShowcase } from './components/AiOverviewSeoShowcase';
-import { ExecutiveResumeModal } from './components/ExecutiveResumeModal';
+
+const projectDetails: Record<
+  string,
+  {
+    label: string;
+    intro: string;
+    highlights: string[];
+  }
+> = {
+  Worldfone4X: {
+    label: 'Omnichannel platform · Team size 10',
+    intro:
+      'Mình tham gia phát triển và tối ưu nền tảng Worldfone4X — hệ thống Omnichannel Contact Center hợp nhất voice, social messaging và CRM integration trong môi trường production chịu tải cao.',
+    highlights: [
+      'Tích hợp hai chiều với Salesforce, HubSpot và xây dựng luồng realtime qua Zalo, WhatsApp, LiveChat, LINE và các dịch vụ OTT.',
+      'Tối ưu các module chịu tải cao trong thành phần Omnichat (Beanstalkd, Redis, WebSocket, MongoDB) giúp tăng message throughput và giảm peak-time latency xuống <35ms (P99).',
+      'Đảm nhiệm vai trò Scrum Host điều phối các buổi sprint ceremonies, tháo gỡ điểm nghẽn kỹ thuật cho đội ngũ 10 kỹ sư và đào tạo developer mới.',
+    ],
+  },
+  'Shinhan Life': {
+    label: 'Enterprise delivery & security · Team size 2',
+    intro:
+      'Mình trực tiếp tham gia dự án Shinhan Life, chịu trách nhiệm chính về chất lượng mã nguồn, bảo mật thông tin cấp độ tài chính - bảo hiểm và tích hợp hệ thống onsite.',
+    highlights: [
+      'Giải quyết triệt để các cảnh báo chất lượng mã nguồn trên SonarQube, giảm 85% code smells và đáp ứng tiêu chuẩn bảo trì cấp enterprise.',
+      'Phát hiện, khắc phục 100% lỗ hổng Cross-site Scripting (XSS) bảo vệ dữ liệu tài chính nhạy cảm và triển khai unit tests (PHPUnit) cho các hàm nghiệp vụ cốt lõi.',
+      'Triển khai, tùy biến onsite nền tảng Worldfone4X tại Shinhan Life và đồng bộ ổn định với hệ thống internal APIs cùng bộ phận IT và business của khách hàng.',
+    ],
+  },
+  PVcomBank: {
+    label: 'Banking communication & WebRTC · Team size 3',
+    intro:
+      'Mình phát triển module giao tiếp thời gian thực độc lập (standalone) cho ngân hàng PVcomBank, bao gồm video call bảo mật và hệ thống phân phối tin nhắn lưu lượng lớn.',
+    highlights: [
+      'Xây dựng tính năng gọi video bảo mật bằng WebRTC kết hợp hạ tầng custom signaling server, mã hóa kênh truyền media và xác thực token nghiêm ngặt.',
+      'Tối ưu hóa tốc độ phân phối tin nhắn, thuật toán chia luồng chat, xử lý WebSocket, cân bằng tải (load balancing) và tuần tự hóa dữ liệu (data serialization).',
+      'Tích hợp trực tiếp với internal APIs của PVcomBank phục vụ xác thực khách hàng (customer verification), quản lý phiên (session management) và ghi log kiểm toán.',
+    ],
+  },
+  'Video Room Integration System': {
+    label: 'Realtime media architecture · Team size 2',
+    intro:
+      'Mình thiết kế kiến trúc backend truyền tải video thời gian thực kết nối Laravel với Janus WebRTC Server và Jitsi, xử lý bất đồng bộ hàng loạt sự kiện phòng họp.',
+    highlights: [
+      'Kiến trúc hệ thống tận dụng Laravel Queues (Redis) để xử lý bất đồng bộ các luồng sự kiện cường độ cao từ Janus, đảm bảo zero application downtime dưới tải nặng.',
+      'Thiết kế schema MongoDB tối ưu để lưu trữ, xử lý và kiểm toán lịch sử phiên họp; biến đổi và ánh xạ (transform & map) payload sự kiện giữa Janus và cấu trúc occupant metadata của Jitsi.',
+      'Triển khai Laravel Task Scheduling tự động dọn dẹp các phiên Janus hết hạn và dữ liệu phòng họp tạm thời trong cơ sở dữ liệu.',
+    ],
+  },
+};
+
+const skillGroups: Array<[string, string[]]> = [
+  [
+    'Application development',
+    [
+      'PHP 7.x / 8.x',
+      'Laravel',
+      'CodeIgniter',
+      'JavaScript',
+      'TypeScript',
+      'React',
+      'Node.js',
+      'Kendo UI',
+      'RESTful API',
+      'MVVM',
+    ],
+  ],
+  [
+    'Data & processing',
+    [
+      'MongoDB',
+      'PostgreSQL',
+      'SQL Server',
+      'Redis',
+      'Beanstalkd',
+      'Laravel Queue',
+      'Laravel Task Scheduling',
+      'SQLite / LibSQL',
+    ],
+  ],
+  [
+    'Realtime & integration',
+    [
+      'WebSocket',
+      'WebRTC',
+      'Janus WebRTC Server',
+      'Jitsi',
+      'Salesforce CRM',
+      'HubSpot CRM',
+      'Zalo / WhatsApp / LINE / LiveChat',
+      'Webhooks & Postback',
+    ],
+  ],
+  [
+    'Delivery & quality',
+    [
+      'AWS EC2 / S3',
+      'Docker',
+      'Kubernetes (K8s)',
+      'GitLab CI/CD',
+      'GitHub Actions',
+      'Nginx',
+      'Linux',
+      'PHPUnit',
+      'SonarQube (-85% smells)',
+      'JWT / Firebase JWT',
+      'Agile / Scrum Host',
+    ],
+  ],
+];
+
+const impactCards = [
+  {
+    index: '01',
+    metric: '-85% Code Smells',
+    title: 'Chất lượng mã nguồn & Bảo mật Enterprise',
+    desc: 'Xử lý triệt để cảnh báo SonarQube, khắc phục 100% lỗ hổng XSS và bổ sung PHPUnit tests cho hệ thống tài chính - bảo hiểm Shinhan Life.',
+  },
+  {
+    index: '02',
+    metric: '<35ms P99 Latency',
+    title: 'Hiệu năng Omnichat & WebSocket tải cao',
+    desc: 'Tối ưu luồng phân phối tin nhắn đa kênh (Zalo, WhatsApp, LINE, LiveChat) và WebRTC signaling cho Worldfone4X và ngân hàng PVcomBank.',
+  },
+  {
+    index: '03',
+    metric: 'Zero Downtime',
+    title: 'Kiến trúc Queue & Realtime Video Mesh',
+    desc: 'Xử lý bất đồng bộ sự kiện phòng họp Janus WebRTC & Jitsi qua Laravel Queue (Redis) cùng cơ chế tự động dọn dẹp phiên trên MongoDB.',
+  },
+  {
+    index: '04',
+    metric: 'Cloud & Scrum Lead',
+    title: 'Tối ưu chi phí Cloud & Dẫn dắt đội ngũ',
+    desc: 'Dự toán, tối ưu chi phí hạ tầng AWS (EC2, S3, Docker, K8s), đào tạo kỹ sư mới và điều phối Sprint với vai trò Scrum Host tại South Telecom.',
+  },
+];
+
+function CodeBlock({ language, label, code }: { language: string; label: string; code: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
+  return (
+    <figure className="article-code">
+      <figcaption>
+        <span>{label}</span>
+        <span className="code-language">{language}</span>
+        <button type="button" onClick={copy} aria-label={`Sao chép đoạn code ${label}`}>
+          {copied ? <Check /> : <Copy />}
+          {copied ? 'Đã sao chép' : 'Sao chép'}
+        </button>
+      </figcaption>
+      <pre tabIndex={0}>
+        <code>{code}</code>
+      </pre>
+    </figure>
+  );
+}
+
+function ArticleBlock({ block }: { block: any }) {
+  if (block.type === 'h2') return <h2 id={block.id}>{block.text}</h2>;
+  if (block.type === 'h3') return <h3 id={block.id}>{block.text}</h3>;
+  if (block.type === 'list')
+    return (
+      <ul>
+        {block.items.map((item: string) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    );
+  if (block.type === 'code') return <CodeBlock {...block} />;
+  if (block.type === 'note')
+    return (
+      <aside className="article-note">
+        <strong>{block.title}</strong>
+        <p>{block.text}</p>
+      </aside>
+    );
+  return <p>{block.text}</p>;
+}
 
 export function App() {
-  const [lang, setLang] = useState<Lang>('vi');
-  const [isResumeModalOpen, setIsResumeModalOpen] = useState<boolean>(false);
+  const [view, setView] = useState<'about' | 'blog' | 'post'>('about');
+  const [activeSlug, setActiveSlug] = useState<string>('nguyen-ngoc-tam-ninh-thuan');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [mascotCharacter, setMascotCharacter] = useState<string>('fox-riso');
+
+  // Backend SQLite / API state
   const [metrics, setMetrics] = useState<PortfolioMetrics>({
     portfolioViews: 14825,
     aiAuditRuns: 643,
     architectureInspections: 3192,
     cvDownloads: 490,
     recruiterShortlists: 129,
-    dbEngine: 'SQLite 3 Native Engine + Turso LibSQL Ready'
+    dbEngine: 'SQLite 3 Native Engine (node:sqlite) + Turso LibSQL Ready',
   });
   const [endorsements, setEndorsements] = useState<EndorsementItem[]>([]);
-
-  // Endorsement Form State
-  const [showEndorseForm, setShowEndorseForm] = useState<boolean>(false);
-  const [endorseAuthor, setEndorseAuthor] = useState<string>('');
-  const [endorseRole, setEndorseRole] = useState<string>('');
-  const [endorseCompany, setEndorseCompany] = useState<string>('');
-  const [endorseHighlight, setEndorseHighlight] = useState<string>(
-    'Top 1% Senior Full-Stack & WebRTC Architect'
+  const [jdInput, setJdInput] = useState<string>(
+    'Senior Full-stack Developer (PHP 8, Laravel, JavaScript/TypeScript, React, MongoDB, PostgreSQL, Redis, WebSocket, WebRTC, AWS, Docker, Kubernetes)'
   );
-  const [endorseComment, setEndorseComment] = useState<string>('');
-  const [endorseSuccess, setEndorseSuccess] = useState<string>('');
+  const [auditReport, setAuditReport] = useState<AiAuditReport | null>(null);
+  const [isAuditing, setIsAuditing] = useState<boolean>(false);
 
-  // Fast-Track Contact Form State
+  // Contact & Endorsement Form
   const [contactName, setContactName] = useState<string>('');
   const [contactEmail, setContactEmail] = useState<string>('');
-  const [contactCompany, setContactCompany] = useState<string>('');
-  const [contactRole, setContactRole] = useState<string>(
-    'Senior / Lead Full-Stack & Real-Time Systems Architect'
-  );
-  const [contactComp, setContactComp] = useState<string>('Offer Senior / Lead Hấp Dẫn (Thương lượng)');
-  const [contactMessage, setContactMessage] = useState<string>(
-    'Chào Nguyễn Ngọc Tâm, chúng tôi rất ấn tượng với hồ sơ năng lực và các dự án Worldfone4X, PVcomBank, Shinhan Life của bạn. Mời bạn tham gia phỏng vấn Fast-Track cùng Tech Lead/CTO của chúng tôi.'
-  );
-  const [contactStatus, setContactStatus] = useState<string>('');
-  const [isSubmittingContact, setIsSubmittingContact] = useState<boolean>(false);
+  const [contactMessage, setContactMessage] = useState<string>('');
+  const [contactDone, setContactDone] = useState<string>('');
 
-  const refreshOverview = async () => {
-    const data = await fetchOverview();
-    setMetrics(data.metrics);
-    setEndorsements(data.endorsements);
-  };
+  const [endorseAuthor, setEndorseAuthor] = useState<string>('');
+  const [endorseRole, setEndorseRole] = useState<string>('');
+  const [endorseComment, setEndorseComment] = useState<string>('');
+  const [endorseDone, setEndorseDone] = useState<string>('');
 
   useEffect(() => {
-    refreshOverview();
+    const syncFromUrl = () => {
+      const p = window.location.pathname;
+      const h = window.location.hash;
+      if (h.startsWith('#/blog/')) {
+        setActiveSlug(h.replace('#/blog/', ''));
+        setView('post');
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      } else if (h === '#/blog' || p.endsWith('/blog')) {
+        setView('blog');
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      } else if (p.includes('/blog/')) {
+        const slug = p.split('/blog/')[1]?.replace(/\/$/, '');
+        if (slug) {
+          setActiveSlug(slug);
+          setView('post');
+          window.scrollTo({ top: 0, behavior: 'auto' });
+        }
+      } else {
+        setView('about');
+      }
+    };
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    window.addEventListener('hashchange', syncFromUrl);
+    return () => {
+      window.removeEventListener('popstate', syncFromUrl);
+      window.removeEventListener('hashchange', syncFromUrl);
+    };
   }, []);
 
-  const handleFastTrackRoleSelect = (roleTitle: string) => {
-    setContactRole(roleTitle);
-    const el = document.getElementById('contact-fast-track');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    fetchOverview().then((data) => {
+      setMetrics(data.metrics);
+      setEndorsements(data.endorsements);
+    });
+    executeAiAudit(jdInput).then((rep) => setAuditReport(rep));
+  }, []);
+
+  const navigateToAbout = (sectionId?: string) => {
+    setView('about');
+    setMobileMenuOpen(false);
+    if (sectionId) {
+      window.history.pushState(null, '', `#${sectionId}`);
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+      }, 40);
+    } else {
+      window.history.pushState(null, '', './');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
-  const handleAddEndorsement = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!endorseComment.trim()) return;
-    const res = await submitEndorsement({
-      author: endorseAuthor || 'HR / Tech Lead',
-      role: endorseRole || 'Engineering Manager / Recruiter',
-      company: endorseCompany || 'Enterprise Technology Organization',
-      highlightMetric: endorseHighlight,
-      comment: endorseComment
-    });
-    setEndorsements(res.endorsements);
-    setEndorseAuthor('');
-    setEndorseRole('');
-    setEndorseCompany('');
-    setEndorseComment('');
-    setEndorseSuccess(
-      lang === 'vi'
-        ? 'Đã lưu nhận xét vào cơ sở dữ liệu thành công!'
-        : 'Endorsement saved to database successfully!'
-    );
-    setTimeout(() => {
-      setEndorseSuccess('');
-      setShowEndorseForm(false);
-    }, 2500);
+  const navigateToBlog = () => {
+    setView('blog');
+    setMobileMenuOpen(false);
+    window.history.pushState(null, '', '#/blog');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const navigateToPost = (slug: string) => {
+    setActiveSlug(slug);
+    setView('post');
+    setMobileMenuOpen(false);
+    window.history.pushState(null, '', `#/blog/${slug}`);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const handleRunAudit = async (customJd?: string) => {
+    setIsAuditing(true);
+    const text = customJd ?? jdInput;
+    if (customJd) setJdInput(customJd);
+    const rep = await executeAiAudit(text);
+    setAuditReport(rep);
+    setIsAuditing(false);
   };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmittingContact(true);
+    if (!contactEmail.trim()) return;
     const res = await submitContactFastTrack({
-      name: contactName,
+      name: contactName || 'HR / Tech Lead',
       email: contactEmail,
-      company: contactCompany,
-      roleType: contactRole,
-      compensationRange: contactComp,
-      message: contactMessage
+      company: 'Enterprise Partner',
+      roleType: 'Senior Full-stack Developer',
+      compensationRange: 'Thương lượng',
+      message: contactMessage || 'Trao đổi cơ hội hợp tác với Nguyễn Ngọc Tâm.',
     });
-    setIsSubmittingContact(false);
-    setContactStatus(res.message);
-    refreshOverview();
+    setContactDone(res.message);
+    setContactName('');
+    setContactEmail('');
+    setContactMessage('');
   };
 
+  const handleEndorseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!endorseComment.trim()) return;
+    const res = await submitEndorsement({
+      author: endorseAuthor || 'Tech Lead / Recruiter',
+      role: endorseRole || 'Engineering Reviewer',
+      company: 'Enterprise',
+      highlightMetric: 'Verified Production Impact',
+      comment: endorseComment,
+    });
+    setEndorsements(res.endorsements);
+    setEndorseAuthor('');
+    setEndorseRole('');
+    setEndorseComment('');
+    setEndorseDone('Đã lưu nhận xét vào SQLite Database!');
+    setTimeout(() => setEndorseDone(''), 3000);
+  };
+
+  const story = findBlogPost('nguyen-ngoc-tam-ninh-thuan');
+  const activePost = findBlogPost(activeSlug) || story;
+
   return (
-    <div className="min-h-screen bg-[#050814] text-slate-100 bg-executive-grid relative">
-      {/* Top Ambient Glow */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-[520px] bg-radial-glow z-0" />
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Bỏ qua menu
+      </a>
 
-      {/* Sticky Command Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-[#050814]/85 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-          {/* Brand Identity */}
-          <a href="#top" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-emerald-500 p-[1.5px] shadow-md shadow-sky-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-sm tracking-tighter text-sky-300 group-hover:text-white transition">
-                NT
-              </div>
-            </div>
-            <div>
-              <div className="font-extrabold text-white text-sm sm:text-base tracking-tight flex items-center gap-1.5">
-                <span>Nguyễn Ngọc Tâm</span>
-                <span className="hidden xl:inline-block px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono text-emerald-300">
-                  SENIOR ARCHITECT
-                </span>
-              </div>
-              <div className="text-[11px] font-mono text-slate-400 hidden sm:block">
-                Full-Stack • WebRTC • Omnichannel • Cloud FinOps
-              </div>
-            </div>
+      {/* Header: Exact Huashu Editorial Global Header from iloveyou/about */}
+      <header className="site-header stable-header editorial-global-header">
+        <a
+          href="#top"
+          onClick={(e) => {
+            e.preventDefault();
+            navigateToAbout();
+          }}
+          className="brand editorial-wordmark"
+          aria-label="Nguyễn Ngọc Tâm - Portfolio"
+        >
+          <span>Nguyễn Ngọc Tâm</span>
+        </a>
+
+        <nav className="desktop-nav simplified-desktop-nav" aria-label="Điều hướng chính">
+          <a
+            href="#projects"
+            className={view === 'about' ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToAbout('projects');
+            }}
+          >
+            Projects
           </a>
+          <a
+            href="#impact"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToAbout('impact');
+            }}
+          >
+            Impact
+          </a>
+          <a
+            href="#experience"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToAbout('experience');
+            }}
+          >
+            Experience
+          </a>
+          <a
+            href="#stack"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToAbout('stack');
+            }}
+          >
+            Stack
+          </a>
+          <a
+            href="#ai-audit"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToAbout('ai-audit');
+            }}
+          >
+            AI Review
+          </a>
+          <a
+            href="#/blog"
+            className={view === 'blog' || view === 'post' ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToBlog();
+            }}
+          >
+            Blog
+          </a>
+          <a
+            href="#about"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToAbout();
+            }}
+          >
+            About Me
+          </a>
+        </nav>
 
-          {/* Center Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-300">
-            <a href="#projects" className="hover:text-sky-300 transition">
-              {lang === 'vi' ? 'Dự Án & Kiến Trúc' : 'Architecture Lab'}
-            </a>
-            <a href="#hr-hub" className="hover:text-sky-300 transition">
-              {lang === 'vi' ? 'HR & AI Audit (100/100)' : 'HR & AI Audit'}
-            </a>
-            <a href="#skills" className="hover:text-sky-300 transition">
-              {lang === 'vi' ? 'Ma Trận Kỹ Năng' : 'Skill Matrix'}
-            </a>
-            <a href="#experience" className="hover:text-sky-300 transition">
-              {lang === 'vi' ? 'Kinh Nghiệm' : 'Experience'}
-            </a>
-            <a href="#endorsements" className="hover:text-sky-300 transition">
-              {lang === 'vi' ? 'Đánh Giá Thực Tế' : 'Endorsements'}
-            </a>
-            <a href="#seo-ai-overview" className="hover:text-sky-300 transition">
-              {lang === 'vi' ? 'AI Overview & DB' : 'AI Overview & DB'}
-            </a>
-          </nav>
-
-          {/* Right Actions: Language Toggle, CV Modal, Hire CTA */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-mono text-slate-200 flex items-center gap-1.5 transition cursor-pointer"
-              title="Switch Language (Tiếng Việt / English)"
-            >
-              <Globe className="w-3.5 h-3.5 text-sky-400" />
-              <span>{lang === 'vi' ? 'VI' : 'EN'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsResumeModalOpen(true)}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-white flex items-center gap-1.5 transition cursor-pointer"
-            >
-              <FileText className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">{lang === 'vi' ? 'Xem / Tải CV' : 'CV / Dossier'}</span>
-              <span className="sm:hidden">CV</span>
-            </button>
-
+        <div className="header-actions">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            aria-label="Đổi giao diện Sáng / Tối"
+            title="Đổi giao diện Huashu Paper / Dark"
+          >
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+          <div className="header-session-slot">
             <a
-              href="#contact-fast-track"
-              className="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs transition shadow-md shadow-sky-500/20"
+              href="./NGUYEN_NGOC_TAM_SENIOR_ARCHITECT_CV.pdf"
+              download="NGUYEN_NGOC_TAM_SENIOR_ARCHITECT_CV.pdf"
+              className="btn small header-start-learning"
             >
-              {lang === 'vi' ? 'Tuyển Dụng Ngay' : 'Hire Now'}
+              Tải CV PDF
             </a>
           </div>
+          <button
+            type="button"
+            className="icon-btn menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+          >
+            {mobileMenuOpen ? <X /> : <Menu />}
+          </button>
         </div>
       </header>
 
-      {/* HERO SECTION */}
-      <main id="top" className="relative z-10">
-        <section className="pt-10 pb-16 sm:pt-16 sm:pb-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-              {/* Hero Left 7 Cols */}
-              <div className="lg:col-span-7">
-                {/* Caliber Badge */}
-                <div className="inline-flex flex-wrap items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-mono font-semibold mb-6">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>
-                    {lang === 'vi'
-                      ? CANDIDATE_PROFILE.caliberBadgeVi
-                      : CANDIDATE_PROFILE.caliberBadgeEn}
-                  </span>
-                </div>
+      {mobileMenuOpen && (
+        <nav className="mobile-menu grouped-mobile-menu simplified-mobile-menu" aria-label="Điều hướng di động">
+          <section>
+            <strong>Hồ sơ Nguyễn Ngọc Tâm</strong>
+            <div>
+              <a
+                href="#projects"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToAbout('projects');
+                }}
+              >
+                Dự án tiêu biểu
+              </a>
+              <a
+                href="#experience"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToAbout('experience');
+                }}
+              >
+                Kinh nghiệm
+              </a>
+              <a
+                href="#stack"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToAbout('stack');
+                }}
+              >
+                Công nghệ
+              </a>
+              <a
+                href="#ai-audit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToAbout('ai-audit');
+                }}
+              >
+                HR & AI Review
+              </a>
+            </div>
+          </section>
+          <section>
+            <strong>Chuyên môn & Liên hệ</strong>
+            <div>
+              <a
+                href="#/blog"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToBlog();
+                }}
+              >
+                Engineering Blog
+              </a>
+              <a href="./NGUYEN_NGOC_TAM_SENIOR_ARCHITECT_CV.pdf" download>
+                Tải CV Senior PDF
+              </a>
+              <a href="./NGUYEN_NGOC_TAM_CV.pdf" download>
+                Tải CV Gốc PDF
+              </a>
+              <a href={`mailto:${AUTHOR.email}`}>Gửi Email</a>
+            </div>
+          </section>
+        </nav>
+      )}
 
-                {/* Main SEO & Executive H1 */}
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.08]">
-                  {CANDIDATE_PROFILE.fullName}{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-emerald-300 to-indigo-400">
-                    ({CANDIDATE_PROFILE.shortName})
-                  </span>
-                </h1>
-
-                <p className="mt-3 text-xl sm:text-2xl font-bold text-sky-300">
-                  {lang === 'vi' ? CANDIDATE_PROFILE.titleVi : CANDIDATE_PROFILE.titleEn}
-                </p>
-
-                <p className="mt-5 text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
-                  {lang === 'vi' ? CANDIDATE_PROFILE.heroPitchVi : CANDIDATE_PROFILE.heroPitchEn}
-                </p>
-
-                {/* Primary CTAs */}
-                <div className="mt-8 flex flex-wrap items-center gap-3.5">
+      <main id="main-content" className="page" tabIndex={-1}>
+        {view === 'about' && (
+          <article className="inner-page section-shell about-author cvp-page cvp-page-v5">
+            <nav className="breadcrumbs" aria-label="Breadcrumb">
+              <ol>
+                <li>
                   <a
-                    href="#hr-hub"
-                    className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 text-slate-950 font-black text-sm inline-flex items-center gap-2 shadow-xl shadow-sky-500/20 transition"
+                    href="#top"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateToAbout();
+                    }}
                   >
-                    <Sparkles className="w-4 h-4" />
-                    {lang === 'vi'
-                      ? 'Thẩm Định Năng Lực & AI Audit (100/100)'
-                      : 'Inspect HR Playbook & AI Audit (100/100)'}
+                    Trang chủ
                   </a>
+                </li>
+                <li>
+                  <span aria-current="page">About Me · Nguyễn Ngọc Tâm</span>
+                </li>
+              </ol>
+            </nav>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsResumeModalOpen(true)}
-                    className="px-5 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 font-bold text-sm inline-flex items-center gap-2 transition cursor-pointer"
-                  >
-                    <Download className="w-4 h-4 text-sky-400" />
-                    {lang === 'vi'
-                      ? 'Tải CV PDF (Bản Gốc & Senior Architect)'
-                      : 'Download CV PDF (Original & Executive)'}
-                  </button>
-
-                  <a
-                    href="#projects"
-                    className="px-5 py-3.5 rounded-2xl bg-slate-900/60 hover:bg-slate-900 text-slate-200 border border-slate-800 font-semibold text-sm inline-flex items-center gap-2 transition"
-                  >
-                    <Terminal className="w-4 h-4 text-emerald-400" />
-                    {lang === 'vi' ? 'Xem 4 Kiến Trúc Hệ Thống' : 'Explore 4 System Architectures'}
-                  </a>
-                </div>
-
-                {/* Direct Contact Bar */}
-                <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center gap-x-6 gap-y-2.5 text-xs sm:text-sm text-slate-300">
-                  <a
-                    href={`tel:${CANDIDATE_PROFILE.phone}`}
-                    className="inline-flex items-center gap-2 hover:text-sky-300 transition font-mono"
-                  >
-                    <Phone className="w-4 h-4 text-emerald-400" />
-                    <span>{CANDIDATE_PROFILE.phoneFormatted}</span>
-                  </a>
-                  <a
-                    href={`mailto:${CANDIDATE_PROFILE.email}`}
-                    className="inline-flex items-center gap-2 hover:text-sky-300 transition font-mono"
-                  >
-                    <Mail className="w-4 h-4 text-sky-400" />
-                    <span>{CANDIDATE_PROFILE.email}</span>
-                  </a>
-                  <a
-                    href={CANDIDATE_PROFILE.linkedin}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 hover:text-sky-300 transition font-mono"
-                  >
-                    <Linkedin className="w-4 h-4 text-sky-400" />
-                    <span>linkedin.com/in/ngoctam1609</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                  <a
-                    href={CANDIDATE_PROFILE.github}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 hover:text-sky-300 transition font-mono"
-                  >
-                    <Github className="w-4 h-4 text-slate-200" />
-                    <span>github.com/ngoctam169</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
+            <header className="cvp5-hero">
+              <div className="cvp5-kicker">
+                <span>Portfolio · Huashu Editorial × Page Mascot</span>
+                <span>Ho Chi Minh City, Vietnam</span>
               </div>
 
-              {/* Hero Right 5 Cols: Executive Architect Command Dossier Card */}
-              <div className="lg:col-span-5">
-                <div className="rounded-3xl bg-slate-900/90 border border-slate-700/80 p-6 sm:p-7 shadow-2xl relative overflow-hidden">
-                  <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-800">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src="./avatar-nguyen-ngoc-tam.png"
-                        alt="Nguyễn Ngọc Tâm (Ngọc Tâm) — Senior Full-Stack & WebRTC Architect"
-                        className="w-14 h-14 rounded-2xl border border-sky-400/50 object-cover"
-                      />
-                      <div>
-                        <div className="text-xs font-mono uppercase text-emerald-400 font-bold">
-                          VERIFIED SENIOR PROFILE
-                        </div>
-                        <div className="text-lg font-black text-white">
-                          Nguyễn Ngọc Tâm (Ngọc Tâm)
-                        </div>
-                        <div className="text-xs text-slate-400 flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-sky-400" />
-                          <span>Ho Chi Minh City, Vietnam</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="px-2.5 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold">
-                        TOP 0.5%
-                      </div>
-                    </div>
-                  </div>
+              <div className="cvp5-hero-grid">
+                <div>
+                  <h1>
+                    <span>Nguyễn Ngọc Tâm</span>
+                    <strong>Full-stack Developer</strong>
+                  </h1>
 
-                  {/* Production Pedigree Highlights */}
-                  <div className="space-y-3 text-xs sm:text-sm mb-6">
-                    <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-start gap-3">
-                      <ShieldCheck className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-bold text-white">
-                          {lang === 'vi'
-                            ? 'Kiến Trúc Sư Nòng Cốt Tại South Telecom'
-                            : 'Core Systems Architect at South Telecom'}
-                        </div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          Worldfone4X Omnichannel • Scrum Host (10-Engineer Squad) • AWS FinOps (-42%)
-                        </div>
-                      </div>
-                    </div>
+                  <p className="cvp5-lead">
+                    Mình xây dựng, tối ưu và vận hành các hệ thống web &amp; realtime communication trong môi trường
+                    production — từ kiến trúc backend/API (PHP, Laravel, Node.js), cơ sở dữ liệu &amp; hàng đợi
+                    (MongoDB, PostgreSQL, Redis, Beanstalkd) đến WebSocket, WebRTC (Janus, Jitsi), tích hợp CRM
+                    (Salesforce, HubSpot) và bảo mật cấp độ tài chính - ngân hàng.
+                  </p>
 
-                    <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-start gap-3">
-                      <Award className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-bold text-white">
-                          {lang === 'vi'
-                            ? 'Bảo Chứng Tại Ngân Hàng & Bảo Hiểm Quốc Tế'
-                            : 'Proven in Tier-1 Banking & Global Insurance'}
-                        </div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          PVcomBank (WebRTC Video eKYC) • Shinhan Life (-85% SonarQube Smells, 0 XSS)
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-start gap-3">
-                      <Terminal className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-bold text-white">
-                          {lang === 'vi'
-                            ? 'Chuyên Gia Real-Time Streaming & Queue Mesh'
-                            : 'Real-Time Media & Async Queue Specialist'}
-                        </div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          Janus WebRTC + Jitsi + Laravel Redis Queues • MongoDB • PostgreSQL • Beanstalkd
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick Download & Fast-Track Bar inside Card */}
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="cvp5-actions">
+                    <a className="btn large" href="#projects">
+                      Xem dự án <ArrowRight />
+                    </a>
+                    <a className="btn secondary large" href={`mailto:${AUTHOR.email}`}>
+                      <Mail /> Liên hệ
+                    </a>
                     <a
+                      className="btn secondary large"
                       href="./NGUYEN_NGOC_TAM_SENIOR_ARCHITECT_CV.pdf"
                       download="NGUYEN_NGOC_TAM_SENIOR_ARCHITECT_CV.pdf"
-                      className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition"
                     >
-                      <Download className="w-3.5 h-3.5 text-sky-400" />
-                      <span>Senior CV (PDF)</span>
+                      <Download /> CV PDF
                     </a>
                     <a
-                      href="./NGUYEN_NGOC_TAM_CV.pdf"
-                      download="NGUYEN_NGOC_TAM_PHP.pdf"
-                      className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 transition"
+                      className="cvp5-text-link"
+                      href={AUTHOR.sameAs[1]}
+                      target="_blank"
+                      rel="me noopener noreferrer"
                     >
-                      <Download className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Original CV (PDF)</span>
+                      GitHub <ExternalLink />
+                    </a>
+                    <a
+                      className="cvp5-text-link"
+                      href={AUTHOR.sameAs[0]}
+                      target="_blank"
+                      rel="me noopener noreferrer"
+                    >
+                      LinkedIn <ExternalLink />
                     </a>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* 6 Executive KPI Cards */}
-            <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-              {EXECUTIVE_KPIS.map((kpi) => (
-                <div
-                  key={kpi.id}
-                  className="p-5 rounded-2xl bg-slate-900/75 border border-slate-800/90 hover:border-sky-500/40 transition"
-                >
-                  <div className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-300 font-mono">
-                    {kpi.value}
+                {/* Interactive Page Mascot Stage (nilbuild/page-mascot) */}
+                <aside className="cvp5-mascot-stage" aria-label="Interactive Page Mascot">
+                  <div className="cvp5-mascot-topline">
+                    <span>
+                      <b>/page-mascot</b> · cursor tracker
+                    </span>
+                    <span>click to boop</span>
                   </div>
-                  <div className="text-xs font-bold text-white mt-1.5">
-                    {lang === 'vi' ? kpi.labelVi : kpi.labelEn}
+                  <div className="cvp5-mascot-canvas">
+                    <Mascot
+                      key={mascotCharacter}
+                      {...mascotSheets(mascotCharacter)}
+                      label={mascotCharacter}
+                      size={168}
+                    />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1.5 leading-snug">
-                    {lang === 'vi' ? kpi.detailVi : kpi.detailEn}
+                  <div className="cvp5-mascot-styles" role="group" aria-label="Chọn phong cách mascot">
+                    {MASCOT_STYLES.map((st) => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        className={mascotCharacter === st.id ? 'active' : ''}
+                        onClick={() => setMascotCharacter(st.id)}
+                        title={`${st.name} (${st.note})`}
+                      >
+                        {st.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="cvp5-mascot-caption">
+                    Di chuột để mascot nhìn theo · Bấm vào mascot để xem biểu cảm
+                  </div>
+                </aside>
+              </div>
+
+              <div className="cvp5-facts" aria-label="Thông tin nhanh">
+                <div>
+                  <span>Current</span>
+                  <strong>South Telecom</strong>
+                </div>
+                <div>
+                  <span>Role</span>
+                  <strong>Full-stack Developer · Scrum Host</strong>
+                </div>
+                <div>
+                  <span>Experience</span>
+                  <strong>07/2022 — Present (Production Lead)</strong>
+                </div>
+                <div>
+                  <span>Location</span>
+                  <strong>
+                    <MapPin /> Ho Chi Minh City
+                  </strong>
+                </div>
+              </div>
+            </header>
+
+            <nav className="cvp5-nav" aria-label="Đi nhanh trong hồ sơ">
+              <a href="#projects">Projects</a>
+              <a href="#impact">Impact</a>
+              <a href="#experience">Experience</a>
+              <a href="#stack">Stack</a>
+              <a href="#ai-audit">HR &amp; AI Review</a>
+              <a
+                href="#/blog"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToBlog();
+                }}
+              >
+                Engineering Blog
+              </a>
+              <a href="#contact">Contact</a>
+            </nav>
+
+            {/* SECTION 1: SELECTED WORK / PROJECTS */}
+            <section className="cvp5-section" id="projects" aria-labelledby="projects-title">
+              <div className="cvp5-section-head">
+                <span>Selected work</span>
+                <h2 id="projects-title">Dự án tiêu biểu</h2>
+                <p>
+                  Các hệ thống enterprise và realtime communication mình trực tiếp thiết kế kiến trúc, phát triển
+                  tính năng và tối ưu trong môi trường production.
+                </p>
+              </div>
+
+              <div className="cvp5-project-list">
+                {AUTHOR.selectedProjects.map((project: any, index: number) => {
+                  const detail = projectDetails[project.name];
+                  return (
+                    <article className="cvp5-project" key={project.name}>
+                      <div className="cvp5-project-title">
+                        <span>{String(index + 1).padStart(2, '0')}</span>
+                        <small>{detail?.label}</small>
+                        <h3>{project.name}</h3>
+                      </div>
+
+                      <div className="cvp5-project-body">
+                        <p>{detail?.intro || project.summary}</p>
+
+                        <ul>
+                          {(detail?.highlights || [project.summary]).map((item: string) => (
+                            <li key={item}>
+                              <Check />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+
+                        <div className="cvp5-tags">
+                          {project.technologies.map((item: string) => (
+                            <span key={item}>{item}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* SECTION 2: SELECTED ENGINEERING IMPACT */}
+            <section className="cvp5-section" id="impact" aria-labelledby="impact-title">
+              <div className="cvp5-section-head cvp5-section-head-split">
+                <div>
+                  <span>Production metrics</span>
+                  <h2 id="impact-title">Dấu ấn kỹ thuật &amp; Tác động thực tế</h2>
+                </div>
+                <p>Những con số định lượng đã được kiểm chứng qua các kỳ audit bảo mật và vận hành thực tế.</p>
+              </div>
+
+              <div className="cvp-strength-grid">
+                {impactCards.map((card) => (
+                  <article key={card.index}>
+                    <span>
+                      {card.index} · {card.metric}
+                    </span>
+                    <h3>{card.title}</h3>
+                    <p>{card.desc}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            {/* SECTION 3: WORK EXPERIENCE */}
+            <section className="cvp5-section" id="experience" aria-labelledby="experience-title">
+              <div className="cvp5-section-head">
+                <span>Experience</span>
+                <h2 id="experience-title">Kinh nghiệm làm việc</h2>
+              </div>
+
+              <div className="cvp5-experience">
+                <article>
+                  <div className="cvp5-experience-side">
+                    <span>07/2022 — Present</span>
+                    <small>Ho Chi Minh City</small>
+                  </div>
+                  <div>
+                    <p className="cvp5-company">South Telecom</p>
+                    <h3>Full-stack Developer · Scrum Host</h3>
+                    <p>
+                      Tại South Telecom, mình phát triển các dòng sản phẩm chủ lực hiệu năng cao, tích hợp các nền
+                      tảng CRM (Salesforce, HubSpot), xây dựng và tối ưu các kênh giao tiếp thời gian thực cho cả
+                      thoại và tin nhắn (Zalo, WhatsApp, LiveChat, LINE, WebRTC). Bên cạnh việc xử lý sự cố
+                      production, dự toán và tối ưu chi phí dịch vụ đám mây (AWS), mình còn đảm nhiệm vai trò Scrum
+                      Host điều phối các nghi thức sprint, tháo gỡ blockers và trực tiếp hướng dẫn kỹ sư mới.
+                    </p>
+                  </div>
+                </article>
+
+                <article>
+                  <div className="cvp5-experience-side">
+                    <span>04/2022 — 07/2022</span>
+                    <small>Ho Chi Minh City</small>
+                  </div>
+                  <div>
+                    <p className="cvp5-company">R-Digital</p>
+                    <h3>Backend Developer Intern</h3>
+                    <p>
+                      Phối hợp cùng đội ngũ front-end developers và các thành viên trong nhóm để thiết lập mục tiêu,
+                      thiết kế mã nguồn backend gắn kết và tối ưu trải nghiệm người dùng, đồng thời báo cáo tiến độ
+                      dự án hằng ngày cho ban lãnh đạo.
+                    </p>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            {/* SECTION 4: TECHNICAL STACK */}
+            <section className="cvp5-section" id="stack" aria-labelledby="stack-title">
+              <div className="cvp5-section-head cvp5-section-head-split">
+                <div>
+                  <span>Technical stack</span>
+                  <h2 id="stack-title">Công nghệ đã sử dụng</h2>
+                </div>
+                <p>Hệ sinh thái công nghệ mình làm việc trực tiếp trong các dự án production.</p>
+              </div>
+
+              <div className="cvp5-stack">
+                {skillGroups.map(([group, items]) => (
+                  <article key={group}>
+                    <h3>{group}</h3>
+                    <div>
+                      {items.map((item) => (
+                        <span key={item}>{item}</span>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            {/* SECTION 5: HR & AI REVIEW + LIVE SQLITE DATABASE */}
+            <section className="cvp5-section" id="ai-audit" aria-labelledby="ai-audit-title">
+              <div className="cvp5-section-head cvp5-section-head-split">
+                <div>
+                  <span>Executive evaluation · SQLite &amp; Node.js API</span>
+                  <h2 id="ai-audit-title">Thẩm định Hồ sơ (AI Review 100/100) &amp; Đánh giá thực tế</h2>
+                </div>
+                <p>
+                  Được vận hành trực tiếp bởi Backend Node.js + {metrics.dbEngine} ({metrics.portfolioViews.toLocaleString()}{' '}
+                  lượt xem).
+                </p>
+              </div>
+
+              <div className="huashu-audit-grid">
+                <div className="huashu-audit-cell">
+                  <span className="overline">AI PORTFOLIO &amp; ATS RUBRIC · 100 / 100</span>
+                  <h3>Kiểm tra mức độ tương thích với Job Description</h3>
+                  <p style={{ color: 'var(--muted)', fontSize: '.82rem', margin: '0 0 10px' }}>
+                    Dán yêu cầu tuyển dụng (JD) của bạn hoặc chọn mẫu bên dưới để đối chiếu trực tiếp với kinh
+                    nghiệm thực tế của Nguyễn Ngọc Tâm:
+                  </p>
+
+                  <div className="huashu-preset-row">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRunAudit(
+                          'Senior Full-Stack Developer: PHP 8, Laravel, CodeIgniter, JavaScript, TypeScript, React, MongoDB, PostgreSQL, Redis, AWS, Docker, Kubernetes'
+                        )
+                      }
+                    >
+                      Senior Full-stack (PHP/Laravel/React)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRunAudit(
+                          'Realtime & WebRTC Systems Engineer: WebSockets, WebRTC, Janus, Jitsi, Beanstalkd, Redis Queues, Salesforce & HubSpot CRM'
+                        )
+                      }
+                    >
+                      Realtime &amp; WebRTC Architect
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRunAudit(
+                          'Banking & Enterprise Backend Lead: SonarQube, OWASP XSS Security, PHPUnit, High-Concurrency APIs, Scrum Facilitator'
+                        )
+                      }
+                    >
+                      Banking &amp; Security Lead
+                    </button>
+                  </div>
+
+                  <textarea
+                    rows={2}
+                    value={jdInput}
+                    onChange={(e) => setJdInput(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', fontSize: '.8rem', marginBottom: '10px' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn small"
+                    onClick={() => handleRunAudit()}
+                    disabled={isAuditing}
+                  >
+                    {isAuditing ? 'Đang phân tích...' : 'Chạy đối chiếu AI & JD'}
+                  </button>
+
+                  {auditReport && (
+                    <div className="huashu-rubric-list">
+                      {auditReport.rubricScores.map((r) => (
+                        <div key={r.dimension} className="huashu-rubric-item">
+                          <div className="huashu-rubric-head">
+                            <span>{r.dimension}</span>
+                            <span>{r.score}/100</span>
+                          </div>
+                          <p>{r.evidence}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="huashu-audit-cell">
+                  <span className="overline">PEER &amp; RECRUITER ENDORSEMENTS (LIVE DB)</span>
+                  <h3>Nhận xét từ đồng nghiệp &amp; đối tác dự án</h3>
+                  <div className="huashu-rubric-list" style={{ marginBottom: '20px' }}>
+                    {endorsements.slice(0, 3).map((item) => (
+                      <div key={item.id} className="huashu-rubric-item">
+                        <div className="huashu-rubric-head">
+                          <span>
+                            {item.author} · <small style={{ color: 'var(--muted)' }}>{item.role}</small>
+                          </span>
+                          <span>★ {item.rating}.0</span>
+                        </div>
+                        <p>“{item.commentVi}”</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <form onSubmit={handleEndorseSubmit} style={{ display: 'grid', gap: '8px' }}>
+                    <strong style={{ fontSize: '.78rem' }}>Thêm đánh giá trực tiếp vào Database:</strong>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <input
+                        type="text"
+                        required
+                        value={endorseAuthor}
+                        onChange={(e) => setEndorseAuthor(e.target.value)}
+                        placeholder="Tên của bạn"
+                        style={{ padding: '8px 10px', fontSize: '.78rem' }}
+                      />
+                      <input
+                        type="text"
+                        value={endorseRole}
+                        onChange={(e) => setEndorseRole(e.target.value)}
+                        placeholder="Chức danh / Công ty"
+                        style={{ padding: '8px 10px', fontSize: '.78rem' }}
+                      />
+                    </div>
+                    <textarea
+                      rows={2}
+                      required
+                      value={endorseComment}
+                      onChange={(e) => setEndorseComment(e.target.value)}
+                      placeholder="Nhận xét về hồ sơ của Nguyễn Ngọc Tâm..."
+                      style={{ padding: '8px 10px', fontSize: '.78rem' }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <button type="submit" className="btn secondary small">
+                        Lưu nhận xét vào DB
+                      </button>
+                      {endorseDone && (
+                        <small style={{ color: 'var(--primary)', fontWeight: 600 }}>{endorseDone}</small>
+                      )}
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </section>
+
+            {/* SECTION 6: EDUCATION & ENGINEERING BLOG META GRID */}
+            <section className="cvp5-section cvp5-meta-grid">
+              <article className="cvp5-meta-card">
+                <GraduationCap />
+                <div>
+                  <span>Education</span>
+                  <h2>Industrial University of Ho Chi Minh City</h2>
+                  <p>Information Technology · 09/2019 — 02/2022</p>
+                </div>
+              </article>
+
+              <article className="cvp5-meta-card cvp5-writing">
+                <div>
+                  <span>Engineering notes</span>
+                  <h2>Cách mình phân tích và xử lý bài toán kỹ thuật</h2>
+                  <p>
+                    Mình ghi lại các case đã gặp khi làm PHP, MongoDB, Redis, queue, WebSocket, WebRTC và
+                    production.
                   </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* INTERACTIVE ARCHITECTURE LAB & 4 ENTERPRISE CASE STUDIES */}
-        <InteractiveArchitectureLab lang={lang} onMetricsUpdate={refreshOverview} />
-
-        {/* HR DECISION HUB & LIVE AI PORTFOLIO AUDITOR (100/100) */}
-        <HrDecisionAndAiAuditHub
-          lang={lang}
-          onFastTrackClick={handleFastTrackRoleSelect}
-          onMetricsUpdate={refreshOverview}
-        />
-
-        {/* 10-YEAR CALIBER TECHNICAL COMPETENCY MATRIX */}
-        <section id="skills" className="py-20 border-t border-slate-800/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mb-12">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-semibold uppercase tracking-wider mb-4">
-                <Terminal className="w-3.5 h-3.5" />
-                {lang === 'vi'
-                  ? 'Ma Trận Năng Lực Kỹ Thuật Toàn Diện • Full-Stack + WebRTC + Cloud'
-                  : 'Full-Spectrum Engineering Matrix • Full-Stack + WebRTC + Cloud'}
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                {lang === 'vi'
-                  ? 'Năng Lực Cốt Lõi Cấp Senior / Principal (6 Trụ Cột Chuyên Môn)'
-                  : 'Senior / Principal Engineering Competency Matrix'}
-              </h2>
-              <p className="mt-3 text-slate-300 text-base leading-relaxed">
-                {lang === 'vi'
-                  ? 'Làm chủ trọn vẹn chu trình phát triển phần mềm từ kiến trúc Backend chịu tải cao (PHP 8/Laravel/Node.js), giao tiếp thời gian thực (WebRTC/Janus/Jitsi/WebSockets), tối ưu Database & Queue đến Cloud FinOps và điều phối Agile Scrum.'
-                  : 'Complete end-to-end ownership spanning high-concurrency Backend (PHP 8/Laravel/Node.js), Real-Time Media (WebRTC/Janus/Jitsi/WebSockets), Distributed Databases/Queues, Cloud FinOps, and Agile Scrum leadership.'}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {SKILL_DOMAINS.map((domain) => (
-                <div
-                  key={domain.id}
-                  className="rounded-3xl bg-slate-900/80 border border-slate-800 p-6 hover:border-slate-700 transition"
+                <a
+                  href="#/blog"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateToBlog();
+                  }}
                 >
-                  <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
-                    <div>
-                      <h3 className="text-base font-extrabold text-white">
-                        {lang === 'vi' ? domain.titleVi : domain.titleEn}
-                      </h3>
-                      <span className="text-[11px] font-mono text-sky-400">{domain.yearsCaliber}</span>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold">
-                      {domain.masteryPercent}%
-                    </span>
-                  </div>
+                  Đọc Engineering Blog <ArrowRight />
+                </a>
+              </article>
+            </section>
 
-                  <div className="space-y-3.5">
-                    {domain.skills.map((sk) => (
-                      <div key={sk.name}>
-                        <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="font-semibold text-slate-200">{sk.name}</span>
-                          <span className="text-[11px] font-mono text-emerald-400">
-                            {sk.highlight}
-                          </span>
-                        </div>
-                        <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
-                            style={{ width: `${sk.level}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* WORK EXPERIENCE & EDUCATION TIMELINE */}
-        <section id="experience" className="py-20 border-t border-slate-800/80 bg-slate-950/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mb-12">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-4">
-                <Briefcase className="w-3.5 h-3.5" />
-                {lang === 'vi'
-                  ? 'Hành Trình Sự Nghiệp & Dấu Ấn Lãnh Đạo Kỹ Thuật'
-                  : 'Professional Track Record & Academic Foundation'}
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                {lang === 'vi'
-                  ? 'Kinh Nghiệm Làm Việc Thực Chiến & Học Vấn'
-                  : 'Enterprise Work Experience & Education'}
-              </h2>
-            </div>
-
-            <div className="space-y-6">
-              {CAREER_TIMELINE.map((exp, idx) => (
-                <div
-                  key={exp.company}
-                  className="rounded-3xl bg-slate-900/80 border border-slate-800 p-6 sm:p-8 relative"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-800">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
-                        {idx === 2 ? (
-                          <GraduationCap className="w-5 h-5" />
-                        ) : (
-                          <Briefcase className="w-5 h-5" />
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black text-white">{exp.company}</h3>
-                        <p className="text-xs sm:text-sm font-bold text-emerald-400">
-                          {lang === 'vi' ? exp.roleVi : exp.roleEn}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-left sm:text-right">
-                      <span className="px-3 py-1 rounded-full bg-slate-950 border border-slate-700 text-xs font-mono text-sky-300">
-                        {exp.period}
-                      </span>
-                      <div className="text-xs text-slate-400 mt-1">{exp.location}</div>
-                    </div>
-                  </div>
-
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-300">
-                    {(lang === 'vi' ? exp.highlightsVi : exp.highlightsEn).map((h, i) => (
-                      <li
-                        key={i}
-                        className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-start gap-2.5"
-                      >
-                        <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
-                        <span className="leading-relaxed">{h}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* LIVE DATABASE-BACKED ENDORSEMENTS & PEER REVIEWS */}
-        <section id="endorsements" className="py-20 border-t border-slate-800/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+            {/* SECTION 7: CONTACT */}
+            <section className="cvp5-contact" id="contact" aria-labelledby="contact-title">
               <div>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold uppercase tracking-wider mb-4">
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  {lang === 'vi'
-                    ? 'Đánh Giá Từ Chuyên Gia & HR (Lưu Trữ Trực Tiếp Trên SQLite / Turso DB)'
-                    : 'Executive Endorsements (Backed by Live SQLite / Turso Database)'}
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                  {lang === 'vi'
-                    ? 'Nhận Định Từ Principal Architects, Security Leads & HR'
-                    : 'What Principal Architects, Security Leads & Recruiters Say'}
-                </h2>
-              </div>
+                <span>Contact</span>
+                <h2 id="contact-title">Nguyễn Ngọc Tâm · Full-stack Developer</h2>
+                <p>
+                  Có thể liên hệ trực tiếp với mình qua số điện thoại <strong>0824608716</strong>, email{' '}
+                  <strong>{AUTHOR.email}</strong> hoặc LinkedIn nếu muốn trao đổi về công việc.
+                </p>
 
-              <button
-                type="button"
-                onClick={() => setShowEndorseForm(!showEndorseForm)}
-                className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-sky-500/40 text-sky-300 font-bold text-xs sm:text-sm inline-flex items-center gap-2 transition cursor-pointer shrink-0"
-              >
-                <MessageSquarePlus className="w-4 h-4" />
-                {lang === 'vi'
-                  ? 'Viết Đánh Giá / Shortlist Vào Database'
-                  : 'Add Live Endorsement to Database'}
-              </button>
-            </div>
-
-            {/* Add Endorsement Form (Connected to POST /api/endorsements) */}
-            {showEndorseForm && (
-              <form
-                onSubmit={handleAddEndorsement}
-                className="mb-10 p-6 rounded-3xl bg-slate-900 border border-sky-500/40 space-y-4"
-              >
-                <h3 className="text-base font-bold text-white">
-                  {lang === 'vi'
-                    ? 'Gửi Nhận Xét / Đánh Giá Trực Tiếp Lên Cơ Sở Dữ Liệu'
-                    : 'Submit a Live Technical Endorsement to the Portfolio Database'}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <form
+                  onSubmit={handleContactSubmit}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                    gap: '8px',
+                    marginTop: '16px',
+                    maxWidth: '680px',
+                  }}
+                >
                   <input
                     type="text"
                     required
-                    value={endorseAuthor}
-                    onChange={(e) => setEndorseAuthor(e.target.value)}
-                    placeholder={lang === 'vi' ? 'Họ tên của bạn (VD: Anh Minh - CTO)' : 'Your Name'}
-                    className="rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs sm:text-sm text-white"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="Tên HR / Tech Lead"
+                    style={{ padding: '9px 12px', fontSize: '.8rem' }}
                   />
                   <input
                     type="text"
-                    value={endorseRole}
-                    onChange={(e) => setEndorseRole(e.target.value)}
-                    placeholder={
-                      lang === 'vi' ? 'Chức danh (VD: Head of Engineering / HR)' : 'Your Role / Title'
-                    }
-                    className="rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs sm:text-sm text-white"
+                    required
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="Email hoặc SĐT liên hệ"
+                    style={{ padding: '9px 12px', fontSize: '.8rem' }}
                   />
                   <input
                     type="text"
-                    value={endorseCompany}
-                    onChange={(e) => setEndorseCompany(e.target.value)}
-                    placeholder={lang === 'vi' ? 'Công ty / Tổ chức' : 'Company / Organization'}
-                    className="rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs sm:text-sm text-white"
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value)}
+                    placeholder="Lời nhắn / Lịch hẹn phỏng vấn"
+                    style={{ padding: '9px 12px', fontSize: '.8rem' }}
                   />
-                </div>
-                <input
-                  type="text"
-                  value={endorseHighlight}
-                  onChange={(e) => setEndorseHighlight(e.target.value)}
-                  placeholder={lang === 'vi' ? 'Điểm ấn tượng nhất' : 'Key Highlight'}
-                  className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs sm:text-sm text-white"
-                />
-                <textarea
-                  rows={3}
-                  required
-                  value={endorseComment}
-                  onChange={(e) => setEndorseComment(e.target.value)}
-                  placeholder={
-                    lang === 'vi'
-                      ? 'Nhập nhận xét của bạn về năng lực kỹ thuật và hồ sơ của Nguyễn Ngọc Tâm...'
-                      : 'Write your endorsement for Nguyễn Ngọc Tâm...'
-                  }
-                  className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs sm:text-sm text-white"
-                />
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-emerald-400 font-mono">{endorseSuccess}</span>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm transition cursor-pointer"
-                  >
-                    {lang === 'vi' ? 'Lưu Vào Database Ngay' : 'Save to Database'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {endorsements.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-3xl bg-slate-900/80 border border-slate-800 p-6 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <div className="flex items-center gap-1 text-amber-400">
-                        {Array.from({ length: item.rating || 5 }).map((_, idx) => (
-                          <Star key={idx} className="w-4 h-4 fill-current" />
-                        ))}
-                      </div>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-mono">
-                        {item.highlightMetric}
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-200 leading-relaxed italic mb-6">
-                      &ldquo;{lang === 'vi' ? item.commentVi : item.commentEn}&rdquo;
-                    </p>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-800">
-                    <div className="font-bold text-white text-sm flex items-center gap-1.5">
-                      <span>{item.author}</span>
-                      <CheckCircle2 className="w-4 h-4 text-sky-400" />
-                    </div>
-                    <div className="text-xs text-sky-300 font-medium">{item.role}</div>
-                    <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                      {item.company}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* GOOGLE AI OVERVIEW (SGE) + KNOWLEDGE GRAPH + FREE CLOUD DB PANEL */}
-        <AiOverviewSeoShowcase lang={lang} metrics={metrics} />
-
-        {/* FAST-TRACK INTERVIEW & DIRECT CONTACT SECTION */}
-        <section
-          id="contact-fast-track"
-          className="py-20 border-t border-slate-800/80 bg-gradient-to-b from-slate-950/50 to-[#050814]"
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-              {/* Left 5 Cols: Direct Executive Contact Info */}
-              <div className="lg:col-span-5 space-y-6">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider">
-                  <Send className="w-3.5 h-3.5" />
-                  {lang === 'vi'
-                    ? 'Kết Nối Trực Tiếp Với Nguyễn Ngọc Tâm'
-                    : 'Direct Fast-Track Recruitment Channel'}
-                </div>
-
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                  {lang === 'vi'
-                    ? 'Đừng Bỏ Lỡ Một Senior Architect Thực Chiến Cho Đội Ngũ Của Bạn'
-                    : 'Secure an Immediate Interview with Nguyễn Ngọc Tâm'}
-                </h2>
-
-                <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                  {lang === 'vi'
-                    ? 'Liên hệ trực tiếp qua Điện thoại / Zalo, Email hoặc gửi lời mời phỏng vấn qua biểu mẫu bên cạnh (được lưu trữ trực tiếp vào Database hệ thống).'
-                    : 'Reach out directly via Phone/Zalo, Email, or submit a Fast-Track Interview invitation through the database-backed form.'}
-                </p>
-
-                <div className="space-y-3.5">
-                  <a
-                    href={`tel:${CANDIDATE_PROFILE.phone}`}
-                    className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-sky-400 flex items-center gap-4 transition"
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
-                      <Phone className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-mono text-slate-400">
-                        Hotline / Zalo / WhatsApp (24/7)
-                      </div>
-                      <div className="text-base font-extrabold text-white font-mono">
-                        {CANDIDATE_PROFILE.phoneFormatted} (0824608716)
-                      </div>
-                    </div>
-                  </a>
-
-                  <a
-                    href={`mailto:${CANDIDATE_PROFILE.email}`}
-                    className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-sky-400 flex items-center gap-4 transition"
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center">
-                      <Mail className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-mono text-slate-400">Direct Email</div>
-                      <div className="text-base font-extrabold text-white font-mono">
-                        {CANDIDATE_PROFILE.email}
-                      </div>
-                    </div>
-                  </a>
-
-                  <a
-                    href={CANDIDATE_PROFILE.linkedin}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-sky-400 flex items-center gap-4 transition"
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
-                      <Linkedin className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-mono text-slate-400">LinkedIn Profile</div>
-                      <div className="text-base font-extrabold text-white font-mono">
-                        linkedin.com/in/ngoctam1609
-                      </div>
-                    </div>
-                  </a>
-                </div>
-              </div>
-
-              {/* Right 7 Cols: Fast-Track Interview Booking Form (Connected to SQLite/Turso DB) */}
-              <div className="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {lang === 'vi'
-                    ? 'Đặt Lịch Phỏng Vấn Nhanh (Fast-Track Interview Booking)'
-                    : 'Fast-Track Executive Interview Scheduler'}
-                </h3>
-                <p className="text-xs text-slate-400 font-mono mb-6">
-                  POST /api/contact • Persisted in SQLite3 / Turso Database
-                </p>
-
-                <form onSubmit={handleContactSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                        {lang === 'vi' ? 'Tên HR / Tech Lead / CTO *' : 'Your Name *'}
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={contactName}
-                        onChange={(e) => setContactName(e.target.value)}
-                        placeholder="VD: Nguyễn Thu Hà (HR Manager)"
-                        className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white focus:border-sky-400 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                        {lang === 'vi' ? 'Email hoặc Số Điện Thoại Liên Hệ *' : 'Work Email or Phone *'}
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={contactEmail}
-                        onChange={(e) => setContactEmail(e.target.value)}
-                        placeholder="hr@company.com / 090xxxxxxx"
-                        className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white focus:border-sky-400 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                        {lang === 'vi' ? 'Tên Công Ty / Tập Đoàn' : 'Company / Organization'}
-                      </label>
-                      <input
-                        type="text"
-                        value={contactCompany}
-                        onChange={(e) => setContactCompany(e.target.value)}
-                        placeholder="VD: Techcombank / Grab / KMS / NashTech..."
-                        className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white focus:border-sky-400 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                        {lang === 'vi' ? 'Mức Đãi Ngộ Dự Kiến (Range)' : 'Compensation Package'}
-                      </label>
-                      <input
-                        type="text"
-                        value={contactComp}
-                        onChange={(e) => setContactComp(e.target.value)}
-                        className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white focus:border-sky-400 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                      {lang === 'vi' ? 'Vị Trí Tuyển Dụng' : 'Target Engineering Role'}
-                    </label>
-                    <input
-                      type="text"
-                      value={contactRole}
-                      onChange={(e) => setContactRole(e.target.value)}
-                      className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-sky-300 font-semibold focus:border-sky-400 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                      {lang === 'vi' ? 'Lời Nhắn / Thời Gian Phỏng Vấn Đề Xuất' : 'Interview Details'}
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={contactMessage}
-                      onChange={(e) => setContactMessage(e.target.value)}
-                      className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white focus:border-sky-400 focus:outline-none"
-                    />
-                  </div>
-
-                  {contactStatus && (
-                    <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                      <span>{contactStatus}</span>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isSubmittingContact}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 text-slate-950 font-black text-sm uppercase tracking-wider transition cursor-pointer shadow-lg shadow-sky-500/20"
-                  >
-                    {isSubmittingContact
-                      ? lang === 'vi'
-                        ? 'Đang lưu lịch hẹn vào Database...'
-                        : 'Saving to Database...'
-                      : lang === 'vi'
-                      ? 'Gửi Lời Mời Phỏng Vấn Nguyễn Ngọc Tâm Ngay'
-                      : 'Send Fast-Track Interview Invitation'}
+                  <button type="submit" className="btn small">
+                    Gửi lời mời phỏng vấn
                   </button>
                 </form>
+                {contactDone && (
+                  <p style={{ color: 'var(--primary)', fontWeight: 600, marginTop: '8px', fontSize: '.8rem' }}>
+                    {contactDone}
+                  </p>
+                )}
               </div>
-            </div>
+              <div className="cvp5-contact-actions">
+                <a className="btn large" href={`mailto:${AUTHOR.email}`}>
+                  <Mail /> {AUTHOR.email}
+                </a>
+                <a className="btn secondary large" href="tel:0824608716">
+                  <Phone /> 0824608716
+                </a>
+                <a
+                  className="btn secondary large"
+                  href={AUTHOR.sameAs[0]}
+                  target="_blank"
+                  rel="me noopener noreferrer"
+                >
+                  <BriefcaseBusiness /> LinkedIn
+                </a>
+              </div>
+            </section>
+          </article>
+        )}
+
+        {/* ENGINEERING BLOG INDEX VIEW */}
+        {view === 'blog' && story && (
+          <div className="inner-page section-shell blog-index">
+            <nav className="breadcrumbs" aria-label="Breadcrumb">
+              <ol>
+                <li>
+                  <a
+                    href="#top"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateToAbout();
+                    }}
+                  >
+                    About Nguyễn Ngọc Tâm
+                  </a>
+                </li>
+                <li>
+                  <span aria-current="page">Engineering Blog</span>
+                </li>
+              </ol>
+            </nav>
+
+            <header className="blog-hero">
+              <div>
+                <span className="overline">ENGINEERING NOTES · BACKEND · REALTIME · PRODUCTION</span>
+                <h1>Những ghi chú kỹ thuật mình muốn giữ lại</h1>
+                <p>
+                  Mình ghi lại các case đã gặp khi làm PHP/Laravel, MongoDB, Redis, WebSocket, WebRTC, queue và
+                  performance.
+                </p>
+                <div className="blog-author-line">
+                  <BookOpenText aria-hidden="true" />
+                  <span>
+                    Nguyễn Ngọc Tâm · {AUTHOR.jobTitle} tại South Telecom
+                  </span>
+                </div>
+              </div>
+              <div className="blog-topic-cloud" aria-label="Chủ đề chính">
+                {['PHP', 'Laravel', 'MongoDB', 'Redis', 'WebSocket', 'WebRTC', 'Performance'].map((topic) => (
+                  <span key={topic}>{topic}</span>
+                ))}
+              </div>
+            </header>
+
+            <section className="blog-story-preview" aria-labelledby="personal-story-preview-title">
+              <div className="blog-story-preview-copy">
+                <span className="article-category">{story.category}</span>
+                <h2 id="personal-story-preview-title">{story.title}</h2>
+                <p className="article-lead">{story.description}</p>
+                <div className="story-preview-body">
+                  {story.content
+                    .filter((block: any) => block.type === 'p')
+                    .slice(0, 2)
+                    .map((block: any, idx: number) => (
+                      <p key={idx}>{block.text}</p>
+                    ))}
+                </div>
+                <div className="article-byline">
+                  <span>
+                    Viết bởi{' '}
+                    <a
+                      href="#about"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateToAbout();
+                      }}
+                    >
+                      {AUTHOR.name}
+                    </a>
+                  </span>
+                  <span>
+                    <CalendarDays aria-hidden="true" />
+                    <time dateTime={story.datePublished}>
+                      {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'long' }).format(
+                        new Date(`${story.datePublished}T00:00:00`)
+                      )}
+                    </time>
+                  </span>
+                  <span>
+                    <Clock3 aria-hidden="true" />
+                    {story.readingTime}
+                  </span>
+                </div>
+                <a
+                  className="btn story-read-more"
+                  href={`#/blog/${story.slug}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateToPost(story.slug);
+                  }}
+                >
+                  Đọc câu chuyện đầy đủ <ArrowRight />
+                </a>
+              </div>
+            </section>
+
+            <section className="blog-list" aria-labelledby="all-articles-title">
+              <div className="section-intro left">
+                <span className="overline">TECHNICAL ARTICLES</span>
+                <h2 id="all-articles-title">Những thứ mình từng phải tìm hiểu khi đi làm</h2>
+                <p>Có bài bắt đầu từ một bug, có bài từ một thứ mình phải tự đọc thêm để xử lý công việc.</p>
+              </div>
+              <div className="blog-grid">
+                {latestBlogPosts.map((post: any) => (
+                  <article className="blog-card" key={post.slug}>
+                    <div className="blog-card-meta">
+                      <span>{post.category}</span>
+                      <span>
+                        <Clock3 aria-hidden="true" /> {post.readingTime}
+                      </span>
+                    </div>
+                    <h3>
+                      <a
+                        href={`#/blog/${post.slug}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigateToPost(post.slug);
+                        }}
+                      >
+                        {post.title}
+                      </a>
+                    </h3>
+                    <p>{post.excerpt}</p>
+                    <div className="blog-card-footer">
+                      <time dateTime={post.datePublished}>
+                        {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'long' }).format(
+                          new Date(`${post.datePublished}T00:00:00`)
+                        )}
+                      </time>
+                      <a
+                        className="text-link"
+                        href={`#/blog/${post.slug}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigateToPost(post.slug);
+                        }}
+                      >
+                        Đọc bài <ArrowRight />
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
           </div>
-        </section>
+        )}
+
+        {/* BLOG POST ARTICLE DETAIL VIEW */}
+        {view === 'post' && activePost && (
+          <article className="inner-page section-shell article-page">
+            <nav className="breadcrumbs" aria-label="Breadcrumb">
+              <ol>
+                <li>
+                  <a
+                    href="#top"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateToAbout();
+                    }}
+                  >
+                    About Nguyễn Ngọc Tâm
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#/blog"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateToBlog();
+                    }}
+                  >
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <span>{activePost.category}</span>
+                </li>
+                <li>
+                  <span aria-current="page">{activePost.title}</span>
+                </li>
+              </ol>
+            </nav>
+
+            <header className="article-header">
+              <span className="article-category">{activePost.category}</span>
+              <h1>{activePost.title}</h1>
+              <p className="article-lead">{activePost.description}</p>
+              <div className="article-byline">
+                <span>
+                  Viết bởi{' '}
+                  <a
+                    href="#about"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateToAbout();
+                    }}
+                  >
+                    {AUTHOR.name}
+                  </a>
+                </span>
+                <span>
+                  <CalendarDays aria-hidden="true" />
+                  <time dateTime={activePost.datePublished}>
+                    {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'long' }).format(
+                      new Date(`${activePost.datePublished}T00:00:00`)
+                    )}
+                  </time>
+                </span>
+                <span>
+                  <Clock3 aria-hidden="true" />
+                  {activePost.readingTime}
+                </span>
+              </div>
+              <div className="article-tags" aria-label="Thẻ bài viết">
+                {activePost.tags.map((tag: string) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
+            </header>
+
+            <div className="article-layout">
+              <div className="article-content">
+                {activePost.content.map((block: any, idx: number) => (
+                  <ArticleBlock key={`${block.type}-${block.id || idx}`} block={block} />
+                ))}
+              </div>
+              <aside className="article-toc" aria-label="Mục lục">
+                <strong>Trong bài này</strong>
+                <ol>
+                  {activePost.content
+                    .filter((block: any) => block.type === 'h2')
+                    .map((block: any) => (
+                      <li key={block.id}>
+                        <a href={`#${block.id}`}>{block.text}</a>
+                      </li>
+                    ))}
+                </ol>
+              </aside>
+            </div>
+
+            <aside className="author-box" aria-labelledby="article-author-title">
+              <div className="author-monogram" aria-hidden="true">
+                NT
+              </div>
+              <div>
+                <span className="overline">TÁC GIẢ</span>
+                <h2 id="article-author-title">{AUTHOR.name}</h2>
+                <strong>{AUTHOR.jobTitle}</strong>
+                <p>{AUTHOR.description}</p>
+                <div className="author-links">
+                  <a
+                    className="text-link"
+                    href="#about"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateToAbout();
+                    }}
+                  >
+                    About Nguyễn Ngọc Tâm <ArrowRight />
+                  </a>
+                  <a href={AUTHOR.sameAs[0]} target="_blank" rel="me noopener noreferrer">
+                    <ExternalLink /> LinkedIn
+                  </a>
+                  <a href={AUTHOR.sameAs[1]} target="_blank" rel="me noopener noreferrer">
+                    <ExternalLink /> GitHub
+                  </a>
+                </div>
+              </div>
+            </aside>
+
+            <section className="related-articles" aria-labelledby="related-title">
+              <div className="related-heading">
+                <div>
+                  <span className="overline">ĐỌC TIẾP</span>
+                  <h2 id="related-title">Bài viết liên quan</h2>
+                </div>
+                <a
+                  className="text-link"
+                  href="#/blog"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateToBlog();
+                  }}
+                >
+                  Xem toàn bộ Blog
+                </a>
+              </div>
+              <div className="blog-grid two">
+                {blogPosts
+                  .filter((item: any) => item.slug !== activePost.slug)
+                  .slice(0, 2)
+                  .map((item: any) => (
+                    <article className="blog-card compact" key={item.slug}>
+                      <div className="blog-card-meta">
+                        <span>{item.category}</span>
+                        <span>
+                          <Clock3 aria-hidden="true" /> {item.readingTime}
+                        </span>
+                      </div>
+                      <h3>
+                        <a
+                          href={`#/blog/${item.slug}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigateToPost(item.slug);
+                          }}
+                        >
+                          {item.title}
+                        </a>
+                      </h3>
+                      <p>{item.excerpt}</p>
+                      <div className="blog-card-footer">
+                        <time dateTime={item.datePublished}>{item.datePublished}</time>
+                        <a
+                          className="text-link"
+                          href={`#/blog/${item.slug}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigateToPost(item.slug);
+                          }}
+                        >
+                          Đọc bài <ArrowRight />
+                        </a>
+                      </div>
+                    </article>
+                  ))}
+              </div>
+            </section>
+
+            <a
+              className="back-link article-back"
+              href="#/blog"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToBlog();
+              }}
+            >
+              <ArrowLeft /> Quay lại Blog
+            </a>
+          </article>
+        )}
       </main>
 
-      {/* FOOTER */}
-      <footer className="border-t border-slate-800/80 py-10 bg-[#03060f] text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <strong className="text-white">Nguyễn Ngọc Tâm (Ngọc Tâm)</strong> — Senior Full-Stack
-            Developer &amp; Real-Time Distributed Systems Architect • Ho Chi Minh City, Vietnam.
+      {/* Exact Huashu Editorial Footer */}
+      <footer className="footer editorial-footer">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <a
+              className="brand editorial-wordmark"
+              href="#top"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToAbout();
+              }}
+            >
+              Nguyễn Ngọc Tâm
+            </a>
+            <p>Full-stack Developer · Realtime Systems · WebRTC &amp; Omnichannel</p>
+            <small>
+              Portfolio &amp; Engineering Notes của Nguyễn Ngọc Tâm (Ngọc Tâm) tại South Telecom, TP. Hồ Chí Minh.
+            </small>
           </div>
-          <div className="flex flex-wrap items-center gap-4 font-mono">
-            <a href="./llms.txt" className="hover:text-sky-300">
-              /llms.txt
+
+          <nav className="editorial-footer-nav" aria-label="Liên kết cuối trang">
+            <a
+              href="#projects"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToAbout('projects');
+              }}
+            >
+              Projects
             </a>
-            <a href="./llms-full.txt" className="hover:text-sky-300">
-              /llms-full.txt
+            <a
+              href="#experience"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToAbout('experience');
+              }}
+            >
+              Experience
             </a>
-            <a href="./ai-profile.json" className="hover:text-sky-300">
-              /ai-profile.json
+            <a
+              href="#stack"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToAbout('stack');
+              }}
+            >
+              Technical Stack
             </a>
-            <a href="./sitemap.xml" className="hover:text-sky-300">
-              /sitemap.xml
+            <a
+              href="#/blog"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToBlog();
+              }}
+            >
+              Engineering Blog
             </a>
+            <a href="./NGUYEN_NGOC_TAM_SENIOR_ARCHITECT_CV.pdf" download>
+              CV PDF
+            </a>
+            <a href={`mailto:${AUTHOR.email}`}>Contact</a>
+          </nav>
+        </div>
+
+        <div className="footer-bottom">
+          <small>© 2026 Nguyễn Ngọc Tâm · Full-stack Developer · Ho Chi Minh City, Vietnam</small>
+          <div>
+            <a href={AUTHOR.sameAs[0]} target="_blank" rel="noreferrer">
+              LinkedIn
+            </a>
+            <a href={AUTHOR.sameAs[1]} target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+            <a href="./llms.txt">LLMs.txt</a>
+            <a href="./sitemap.xml">Sitemap</a>
           </div>
         </div>
       </footer>
-
-      {/* Executive Resume Modal */}
-      <ExecutiveResumeModal
-        isOpen={isResumeModalOpen}
-        onClose={() => setIsResumeModalOpen(false)}
-        lang={lang}
-      />
     </div>
   );
 }

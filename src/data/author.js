@@ -1,0 +1,122 @@
+export const AUTHOR = {
+  name: 'Nguyễn Ngọc Tâm',
+  givenName: 'Tâm',
+  additionalName: 'Ngọc',
+  familyName: 'Nguyễn',
+  alternateNames: ['Nguyen Ngoc Tam', 'Ngọc Tâm Dev', 'Tâm Dev', 'Nguyen Ngoc Tam Dev'],
+  brandName: 'Ngọc Tâm Dev',
+  identifier: 'ngoc-tam-dev',
+  jobTitle: 'Full-stack Developer',
+  roles: ['Full-stack Developer', 'Backend Developer', 'Realtime Systems Developer', 'PHP Developer'],
+  location: 'Ho Chi Minh City, Vietnam',
+  email: 'nguyenngoctam1609@gmail.com',
+  origin: 'Ninh Thuận, Vietnam',
+  description: 'Nguyễn Ngọc Tâm là Full-stack Developer tại South Telecom từ 07/2022, làm việc với PHP/Laravel, JavaScript/TypeScript, MongoDB, Redis, realtime communication qua WebSocket/WebRTC và các hệ thống tích hợp CRM.',
+  focusAreas: [
+    'Backend & realtime systems',
+    'Omnichannel communication',
+    'WebSocket & WebRTC',
+    'Enterprise CRM/API integration',
+    'Performance & production reliability',
+    'Queue, cache & asynchronous processing',
+    'Application security & code quality',
+    'Cloud & CI/CD',
+  ],
+  impactHighlights: [
+    'Tối ưu module Omnichat để tăng message throughput và giảm peak-time latency.',
+    'Giảm 85% code smells khi xử lý SonarQube cho dự án enterprise.',
+    'Khắc phục lỗ hổng Cross-site Scripting (XSS) và bổ sung unit tests cho core business functions.',
+    'Phát triển module video call realtime bằng WebRTC và custom signaling cho môi trường tài chính.',
+    'Tích hợp Salesforce, HubSpot cùng các kênh Zalo, WhatsApp, LiveChat và LINE.',
+    'Thiết kế backend video-room với Laravel, Janus, Jitsi, MongoDB, Redis và queue xử lý bất đồng bộ.',
+  ],
+  selectedProjects: [
+    {
+      name: 'Worldfone4X',
+      summary: 'Tham gia phát triển Worldfone4X, tích hợp Salesforce/HubSpot, các kênh OTT và xử lý phần Omnichat.',
+      technologies: ['PHP', 'MongoDB', 'Redis', 'Beanstalkd', 'JavaScript', 'WebSocket'],
+    },
+    {
+      name: 'Shinhan Life',
+      summary: 'Xử lý SonarQube, giảm 85% code smells, khắc phục XSS, bổ sung unit tests, triển khai onsite và đồng bộ với internal APIs.',
+      technologies: ['PHP', 'MongoDB', 'Redis', 'JavaScript', 'WebSocket'],
+    },
+    {
+      name: 'PVcomBank',
+      summary: 'Làm module realtime communication cho PVcomBank, gồm WebRTC video call, custom signaling, WebSocket và message delivery.',
+      technologies: ['PHP', 'WebRTC', 'WebSocket', 'MongoDB', 'Redis'],
+    },
+    {
+      name: 'Video Room Integration System',
+      summary: 'Làm backend video room với Laravel, Janus, Jitsi, Redis Queue và MongoDB.',
+      technologies: ['Laravel', 'Janus WebRTC', 'Jitsi', 'MongoDB', 'Redis', 'WebSocket'],
+    },
+  ],
+  knowsAbout: [
+    'PHP', 'Laravel', 'CodeIgniter', 'JavaScript', 'TypeScript', 'Kendo UI', 'MongoDB',
+    'PostgreSQL', 'SQL Server', 'Redis', 'Beanstalkd', 'WebSocket', 'WebRTC',
+    'Janus WebRTC Server', 'Jitsi', 'REST API', 'Salesforce Integration',
+    'HubSpot Integration', 'Omnichannel Communication', 'Application Security',
+    'SonarQube', 'Unit Testing', 'Docker', 'Kubernetes', 'AWS', 'GitLab CI/CD',
+    'GitHub Actions', 'Nginx', 'Linux',
+  ],
+  sameAs: [
+    'https://linkedin.com/in/ngoctam1609',
+    'https://github.com/ngoctam169',
+  ],
+  employment: {
+    organization: 'South Telecom',
+    role: 'Full-stack Developer',
+    startDate: '2022-07',
+  },
+  education: {
+    organization: 'Industrial University of Ho Chi Minh City',
+    field: 'Information Technology',
+    startDate: '2019-09',
+    endDate: '2022-02',
+  },
+}
+
+export function personEntity(siteUrl) {
+  return {
+    '@type': 'Person',
+    '@id': `${siteUrl}/#person`,
+    identifier: AUTHOR.identifier,
+    name: AUTHOR.name,
+    givenName: AUTHOR.givenName,
+    additionalName: AUTHOR.additionalName,
+    familyName: AUTHOR.familyName,
+    alternateName: AUTHOR.alternateNames,
+    jobTitle: AUTHOR.jobTitle,
+    email: `mailto:${AUTHOR.email}`,
+    description: AUTHOR.description,
+    disambiguatingDescription: 'Nguyễn Ngọc Tâm (Ngọc Tâm Dev), Full-stack Developer quê Ninh Thuận, hiện làm việc tại South Telecom ở TP.HCM.',
+    url: `${siteUrl}/about`,
+    mainEntityOfPage: { '@id': `${siteUrl}/about#profilepage` },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Ho Chi Minh City',
+      addressCountry: 'VN',
+    },
+    worksFor: {
+      '@type': 'Organization',
+      name: AUTHOR.employment.organization,
+    },
+    alumniOf: {
+      '@type': 'CollegeOrUniversity',
+      name: AUTHOR.education.organization,
+    },
+    hasOccupation: {
+      '@type': 'Occupation',
+      name: AUTHOR.jobTitle,
+      description: 'Full-stack Developer làm việc với frontend integration, backend/API, database, realtime communication và hệ thống tích hợp.',
+      skills: AUTHOR.knowsAbout.join(', '),
+      occupationLocation: {
+        '@type': 'City',
+        name: 'Ho Chi Minh City',
+      },
+    },
+    knowsAbout: AUTHOR.knowsAbout,
+    sameAs: AUTHOR.sameAs,
+  }
+}
