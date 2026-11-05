@@ -1487,3 +1487,55 @@ html{scrollbar-gutter:stable}
     font-size:.52rem;
   }
 }
+
+/* Corner Mascot Dock (nilbuild/page-mascot fixed in viewport corner) */
+.corner-mascot-dock{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:85;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  pointer-events:auto;
+}
+.corner-mascot-frame{
+  display:grid;
+  place-items:center;
+  padding:6px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(12px);
+  box-shadow:0 12px 32px rgba(26,25,24,.09);
+  transition:border-color .18s, transform .18s;
+}
+.corner-mascot-frame:hover{
+  border-color:var(--primary);
+}
+.corner-mascot-switch{
+  padding:3px 9px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface) 94%,transparent);
+  color:var(--muted);
+  font-family:var(--huashu-mono);
+  font-size:.58rem;
+  letter-spacing:.04em;
+  cursor:pointer;
+  transition:color .15s, border-color .15s;
+}
+.corner-mascot-switch:hover{
+  color:var(--primary);
+  border-color:var(--primary);
+}
+@media(max-width:760px){
+  .corner-mascot-dock{
+    right:12px;
+    bottom:12px;
+  }
+  .corner-mascot-frame{
+    padding:4px;
+  }
+}
