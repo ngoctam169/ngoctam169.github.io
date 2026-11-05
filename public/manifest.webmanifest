@@ -1,0 +1,23 @@
+{
+  "name": "Nguyễn Ngọc Tâm (Ngọc Tâm) — Senior Full-Stack & WebRTC Systems Architect",
+  "short_name": "Nguyễn Ngọc Tâm",
+  "description": "Official Executive Engineering Portfolio of Nguyễn Ngọc Tâm (Ngọc Tâm) — Senior Full-Stack Developer, Real-Time WebRTC Architect & Omnichannel Contact Center Lead in Ho Chi Minh City, Vietnam.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050814",
+  "theme_color": "#0EA5E9",
+  "lang": "vi-VN",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/avatar-nguyen-ngoc-tam.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

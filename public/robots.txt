@@ -1,0 +1,36 @@
+# Official Robots & AI Crawler Policy for Nguyễn Ngọc Tâm (Ngọc Tâm) Executive Portfolio
+User-agent: *
+Allow: /
+
+# Google Search & Google AI Overview (SGE / Gemini)
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# OpenAI Search & ChatGPT Agent Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Perplexity, Anthropic Claude, Bing Copilot & Apple Intelligence
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/sitemap.xml
+# LLM Discovery Endpoints: /llms.txt and /llms-full.txt
