@@ -1,43 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://ngoctam169.github.io/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://ngoctam169.github.io/about/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://ngoctam169.github.io/projects/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ngoctam169.github.io/cv/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ngoctam169.github.io/contact/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
   <url>
     <loc>https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/</loc>
-    <lastmod>2026-11-05</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="vi-VN" href="https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/?lang=vi" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/?lang=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/" />
-    <image:image>
-      <image:loc>https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/og-nguyen-ngoc-tam.png</image:loc>
-      <image:title>Nguyễn Ngọc Tâm (Ngọc Tâm) — Senior Full-Stack &amp; Real-Time Systems Architect</image:title>
-      <image:caption>Official Executive Portfolio of Nguyễn Ngọc Tâm (Ngọc Tâm), Senior Full-Stack Developer &amp; WebRTC Systems Architect in Ho Chi Minh City, Vietnam.</image:caption>
-    </image:image>
+  </url>
+  <url>
+    <loc>https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/NGUYEN_NGOC_TAM_CV.pdf</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/llms.txt</loc>
-    <lastmod>2026-11-05</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/llms-full.txt</loc>
-    <lastmod>2026-11-05</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/NGUYEN_NGOC_TAM_SENIOR_ARCHITECT_CV.pdf</loc>
-    <lastmod>2026-11-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ngoctam169.github.io/nguyen-ngoc-tam-portfolio/NGUYEN_NGOC_TAM_CV.pdf</loc>
-    <lastmod>2026-11-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
 </urlset>

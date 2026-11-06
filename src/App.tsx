@@ -155,6 +155,29 @@ const impactCards = [
   },
 ];
 
+const faqItems = [
+  {
+    question: 'Nguyễn Ngọc Tâm (Ngọc Tâm) hiện đang làm công việc gì?',
+    answer:
+      'Mình là Nguyễn Ngọc Tâm (thường gọi là Ngọc Tâm hoặc Ngọc Tâm Dev), hiện đang làm Full-stack Developer tại South Telecom ở TP. Hồ Chí Minh từ tháng 07/2022. Công việc chính của mình là phát triển backend/API, tích hợp client, xây dựng các hệ thống giao tiếp thời gian thực (WebSocket, WebRTC) và tích hợp CRM.',
+  },
+  {
+    question: 'Những dự án thực tế nổi bật mà Nguyễn Ngọc Tâm đã tham gia là gì?',
+    answer:
+      'Tại South Telecom, mình trực tiếp tham gia phát triển nền tảng Omnichannel Worldfone4X (tích hợp Salesforce, HubSpot, Zalo, WhatsApp, LINE, LiveChat), dự án Shinhan Life (tối ưu SonarQube giảm 85% code smells, xử lý lỗi bảo mật XSS và triển khai onsite), module gọi video WebRTC cho ngân hàng PVcomBank, và hệ thống phòng họp trực tuyến kết nối Laravel với Janus WebRTC Server và Jitsi.',
+  },
+  {
+    question: 'Thế mạnh công nghệ của Ngọc Tâm gồm những mảng nào?',
+    answer:
+      'Mình làm việc sâu với PHP (Laravel, CodeIgniter), JavaScript/TypeScript (React, Node.js, Kendo UI), cơ sở dữ liệu MongoDB, PostgreSQL, SQL Server, hàng đợi Redis và Beanstalkd, cùng các công nghệ thời gian thực như WebSocket, WebRTC, Janus và Jitsi trên hạ tầng Linux, Docker, Kubernetes và AWS.',
+  },
+  {
+    question: 'Làm sao để liên hệ trực tiếp với Nguyễn Ngọc Tâm khi có cơ hội hợp tác?',
+    answer:
+      'Bạn có thể gọi hoặc nhắn Zalo cho mình qua số 0824608716, gửi email đến nguyenngoctam1609@gmail.com, hoặc kết nối qua LinkedIn (linkedin.com/in/ngoctam1609) và GitHub (github.com/ngoctam169).',
+  },
+];
+
 export function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
@@ -347,23 +370,28 @@ export function App() {
       )}
 
       <main id="main-content" className="page" tabIndex={-1}>
-        <article className="inner-page section-shell about-author cvp-page cvp-page-v5">
+        <article
+          className="inner-page section-shell about-author cvp-page cvp-page-v5"
+          itemScope
+          itemType="https://schema.org/Person"
+        >
           <header className="cvp5-hero">
             <div className="cvp5-kicker">
-              <span>Portfolio · Nguyễn Ngọc Tâm</span>
+              <span>Portfolio · Nguyễn Ngọc Tâm (Ngọc Tâm)</span>
               <span>Ho Chi Minh City, Vietnam</span>
             </div>
 
             <h1>
-              <span>Nguyễn Ngọc Tâm</span>
-              <strong>Full-stack Developer</strong>
+              <span itemProp="name">Nguyễn Ngọc Tâm</span>
+              <strong itemProp="jobTitle">Full-stack Developer</strong>
             </h1>
 
-            <p className="cvp5-lead">
-              Mình là Full-stack Developer làm việc tại TP. Hồ Chí Minh từ năm 2022. Công việc hằng ngày của mình xoay
-              quanh việc phát triển và tối ưu các hệ thống web, nền tảng giao tiếp thời gian thực (WebSocket, WebRTC,
-              Janus, Jitsi), tích hợp CRM (Salesforce, HubSpot) cùng các kênh nhắn tin Zalo, WhatsApp, LINE và LiveChat
-              trong môi trường production.
+            <p className="cvp5-lead" itemProp="description">
+              Mình là <strong>Nguyễn Ngọc Tâm</strong> (Ngọc Tâm), Full-stack Developer làm việc tại{' '}
+              <strong itemProp="worksFor">South Telecom</strong> (TP. Hồ Chí Minh) từ năm 2022. Công việc hằng ngày của
+              mình xoay quanh việc phát triển và tối ưu các hệ thống web, nền tảng giao tiếp thời gian thực (WebSocket,
+              WebRTC, Janus, Jitsi), tích hợp CRM (Salesforce, HubSpot) cùng các kênh nhắn tin Zalo, WhatsApp, LINE và
+              LiveChat trong môi trường production.
             </p>
 
             <div className="cvp5-actions">
@@ -377,7 +405,7 @@ export function App() {
               >
                 Xem dự án <ArrowRight />
               </a>
-              <a className="btn secondary large" href={`mailto:${AUTHOR.email}`}>
+              <a className="btn secondary large" href={`mailto:${AUTHOR.email}`} itemProp="email">
                 <Mail /> Liên hệ
               </a>
               <a
@@ -392,6 +420,7 @@ export function App() {
                 href={AUTHOR.sameAs[1]}
                 target="_blank"
                 rel="me noopener noreferrer"
+                itemProp="sameAs"
               >
                 GitHub <ExternalLink />
               </a>
@@ -400,6 +429,7 @@ export function App() {
                 href={AUTHOR.sameAs[0]}
                 target="_blank"
                 rel="me noopener noreferrer"
+                itemProp="sameAs"
               >
                 LinkedIn <ExternalLink />
               </a>
@@ -420,7 +450,7 @@ export function App() {
               </div>
               <div>
                 <span>Location</span>
-                <strong>
+                <strong itemProp="address">
                   <MapPin /> Ho Chi Minh City
                 </strong>
               </div>
@@ -472,6 +502,15 @@ export function App() {
               }}
             >
               Education
+            </a>
+            <a
+              href="#faq"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('faq');
+              }}
+            >
+              Q&amp;A
             </a>
             <a
               href="#contact"
@@ -612,7 +651,9 @@ export function App() {
                   <h3>{group}</h3>
                   <div>
                     {items.map((item) => (
-                      <span key={item}>{item}</span>
+                      <span key={item} itemProp="knowsAbout">
+                        {item}
+                      </span>
                     ))}
                   </div>
                 </article>
@@ -626,7 +667,7 @@ export function App() {
               <GraduationCap />
               <div>
                 <span>Education</span>
-                <h2>Industrial University of Ho Chi Minh City</h2>
+                <h2 itemProp="alumniOf">Industrial University of Ho Chi Minh City</h2>
                 <p>Information Technology · 09/2019 — 02/2022</p>
               </div>
             </article>
@@ -645,14 +686,31 @@ export function App() {
             </article>
           </section>
 
-          {/* SECTION 6: CONTACT */}
+          {/* SECTION 6: FAQ FOR GOOGLE AI OVERVIEW & RECRUITERS */}
+          <section className="cvp5-section" id="faq" aria-labelledby="faq-title">
+            <div className="cvp5-section-head">
+              <span>Quick facts</span>
+              <h2 id="faq-title">Thông tin tóm tắt về Nguyễn Ngọc Tâm</h2>
+            </div>
+
+            <div className="faq-list">
+              {faqItems.map((item, idx) => (
+                <details key={item.question} open={idx === 0}>
+                  <summary>{item.question}</summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+
+          {/* SECTION 7: CONTACT */}
           <section className="cvp5-contact" id="contact" aria-labelledby="contact-title">
             <div>
               <span>Contact</span>
               <h2 id="contact-title">Nguyễn Ngọc Tâm · Full-stack Developer</h2>
               <p>
-                Bạn có thể liên hệ trực tiếp với mình qua số điện thoại <strong>0824608716</strong>, email{' '}
-                <strong>{AUTHOR.email}</strong> hoặc LinkedIn để trao đổi thêm về công việc và dự án.
+                Bạn có thể liên hệ trực tiếp với mình qua số điện thoại <strong itemProp="telephone">0824608716</strong>
+                , email <strong>{AUTHOR.email}</strong> hoặc LinkedIn để trao đổi thêm về công việc và dự án.
               </p>
             </div>
             <div className="cvp5-contact-actions">
@@ -710,7 +768,7 @@ export function App() {
             </a>
             <p>Full-stack Developer · Realtime Systems · WebRTC &amp; Omnichannel</p>
             <small>
-              Portfolio cá nhân của Nguyễn Ngọc Tâm — Full-stack Developer tại TP. Hồ Chí Minh.
+              Portfolio cá nhân của Nguyễn Ngọc Tâm (Ngọc Tâm) — Full-stack Developer tại TP. Hồ Chí Minh.
             </small>
           </div>
 
@@ -761,10 +819,10 @@ export function App() {
         <div className="footer-bottom">
           <small>© 2026 Nguyễn Ngọc Tâm · Full-stack Developer · Ho Chi Minh City, Vietnam</small>
           <div>
-            <a href={AUTHOR.sameAs[0]} target="_blank" rel="noreferrer">
+            <a href={AUTHOR.sameAs[0]} target="_blank" rel="me noopener noreferrer">
               LinkedIn
             </a>
-            <a href={AUTHOR.sameAs[1]} target="_blank" rel="noreferrer">
+            <a href={AUTHOR.sameAs[1]} target="_blank" rel="me noopener noreferrer">
               GitHub
             </a>
           </div>
