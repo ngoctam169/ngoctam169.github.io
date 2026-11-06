@@ -23,6 +23,8 @@ for (const subRoute of ['about', 'cv', 'projects', 'contact']) {
 }
 
 const outDir = path.join(process.cwd(), '.vercel', 'output');
+fs.rmSync(path.join(process.cwd(), '.vercel', 'anonymous.json'), { force: true });
+fs.rmSync(path.join(process.cwd(), '.vercel', 'project.json'), { force: true });
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(path.join(outDir, 'static'), { recursive: true });
 fs.cpSync(distDir, path.join(outDir, 'static'), { recursive: true });

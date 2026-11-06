@@ -1488,6 +1488,83 @@ html{scrollbar-gutter:stable}
   }
 }
 
+/* Language toggle button & Collapsible Architecture Flow */
+.lang-btn{
+  width:auto!important;
+  min-width:44px;
+  padding:0 10px!important;
+  font-family:var(--huashu-mono);
+  font-size:.66rem;
+  font-weight:600;
+  letter-spacing:.06em;
+}
+.cvp5-arch-flow{
+  margin:0 0 20px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--surface-2) 55%,var(--surface));
+}
+.cvp5-arch-flow summary{
+  padding:11px 14px;
+  cursor:pointer;
+  user-select:none;
+  font-family:var(--huashu-mono);
+  font-size:.67rem;
+  font-weight:600;
+  letter-spacing:.05em;
+  color:var(--primary);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  list-style:none;
+}
+.cvp5-arch-flow summary::-webkit-details-marker{
+  display:none;
+}
+.cvp5-arch-flow summary::after{
+  content:'+';
+  font-size:.85rem;
+  font-weight:500;
+  color:var(--muted);
+}
+.cvp5-arch-flow[open] summary{
+  border-bottom:1px solid var(--line);
+}
+.cvp5-arch-flow[open] summary::after{
+  content:'−';
+}
+.cvp5-arch-body{
+  padding:14px 16px;
+  display:grid;
+  gap:10px;
+}
+.cvp5-arch-pipeline{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px;
+  font-family:var(--huashu-mono);
+  font-size:.65rem;
+}
+.cvp5-arch-node{
+  padding:5px 9px;
+  border:1px solid var(--line);
+  border-radius:5px;
+  background:var(--surface);
+  color:var(--text);
+  font-weight:500;
+}
+.cvp5-arch-arrow{
+  color:var(--primary);
+  font-weight:700;
+}
+.cvp5-arch-note{
+  margin:0!important;
+  color:var(--muted);
+  font-size:.76rem!important;
+  line-height:1.6!important;
+}
+
 /* Corner Mascot Dock (nilbuild/page-mascot fixed in viewport corner) */
 .corner-mascot-dock{
   position:fixed;
